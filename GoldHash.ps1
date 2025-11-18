@@ -1,5 +1,5 @@
-﻿<#
-    GoldHash v1.0
+<#
+    GoldHash v1.1
     Windows File Integrity Baseline & Comparison Tool
     Author: PawnShuffler
 
@@ -296,15 +296,29 @@ if ($Mode -eq "Compare") {
         }
 
         "html" {
-            # Simple HTML, can be expanded if needed
-            $html = @"
+            # Metadata section
+$metadataHtml = "<h3>Metadata</h3><ul>"
+foreach ($prop in $Metadata.PSObject.Properties) {
+    # Skip ScannedPath property from metadata, we will display our own Path instead
+    if ($prop.Name -ne "ScannedPath") {
+        $metadataHtml += "<li><strong>$($prop.Name):</strong> $($prop.Value)</li>"
+    }
+}
+# Add Path in the metadata block
+$metadataHtml += "<li><strong>Path:</strong> $Path</li>"
+$metadataHtml += "</ul>"
+
+# Full HTML with metadata and table
+$html = @"
 <html>
 <head>
 <title>GoldHash Report</title>
 <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    h2 { text-align: center; font-weight: 600; margin-bottom: 30px; }
-    table { width: 100%; border-collapse: collapse; background: #ffffff; font-family: 'Courier New', monospace; font-size: 14px; }
+    h2, h3 { text-align: center; font-weight: 600; margin-bottom: 20px; }
+    ul { background: #ffffff; padding: 15px; border-radius: 5px; list-style-type: none; }
+    li { padding: 3px 0; font-family: 'Courier New', monospace; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; background: #ffffff; font-family: 'Courier New', monospace; font-size: 14px; margin-top: 20px; }
     th { background: #333333; color: #ffffff; padding: 10px; border-bottom: 2px solid #222222; text-align: left; }
     td { padding: 8px; border-bottom: 1px solid #dddddd; white-space: pre-wrap; word-break: break-word; }
     tr:nth-child(even) { background: #f0f0f0; }
@@ -312,11 +326,10 @@ if ($Mode -eq "Compare") {
 <style>
 th:hover { background-color: #555; color: #fff; }
 </style>
-
 </head>
 <body>
 <h2>GoldHash Compare Report</h2>
-<p>Path: $Path</p>
+$metadataHtml
 <table id="goldhashTable">
 <tr>
 <th onclick="sortTable(0)" style="cursor:pointer">File &#x25B2;&#x25BC;</th>
@@ -325,21 +338,20 @@ th:hover { background-color: #555; color: #fff; }
 <th onclick="sortTable(3)" style="cursor:pointer">Baseline &#x25B2;&#x25BC;</th>
 <th onclick="sortTable(4)" style="cursor:pointer">Current &#x25B2;&#x25BC;</th>
 </tr>
-
 "@
 
-    foreach ($r in $Results) {
-        $color = switch ($r.Status) {
-            "CORRECT"    { "lightgreen" }
-            "SUSPICIOUS" { "lightcoral" }
-            "UNKNOWN"    { "lightblue" }
-            "MISSING"    { "khaki" }
-        }
+            foreach ($r in $Results) {
+                $color = switch ($r.Status) {
+                    "CORRECT"    { "lightgreen" }
+                    "SUSPICIOUS" { "lightcoral" }
+                    "UNKNOWN"    { "lightblue" }
+                    "MISSING"    { "khaki" }
+                }
 
-        $html += "<tr style='background:$color'><td>$($r.FileName)</td><td>$($r.Path)</td><td>$($r.Status)</td><td>$($r.HashBaseline)</td><td>$($r.HashCurrent)</td></tr>"
-    }
+                $html += "<tr style='background:$color'><td>$($r.FileName)</td><td>$($r.Path)</td><td>$($r.Status)</td><td>$($r.HashBaseline)</td><td>$($r.HashCurrent)</td></tr>"
+            }
 
-    $html += @"
+            $html += @"
 </table>
 <script>
 function sortTable(n) {
@@ -384,8 +396,8 @@ function sortTable(n) {
 </html>
 "@
 
-    $html | Out-File $OutputFile -Encoding UTF8
-}
+            $html | Out-File $OutputFile -Encoding UTF8
+        }
 
     }
 
