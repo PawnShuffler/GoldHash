@@ -61,8 +61,8 @@ Compares files on the machine against an existing baseline.
   - `-VerboseMode` - optional, prints detailed info in console
  
  - HTML reports include
-  - Sortable columns -> click to sort
-  - Color-coded status
+   - Sortable columns -> click to sort
+   - Color-coded status
 
 ## Example
 Generate a baseline of System32 in JSON format on your golden image of Windows endpoint
